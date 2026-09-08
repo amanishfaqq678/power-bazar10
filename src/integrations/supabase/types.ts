@@ -215,6 +215,13 @@ export type Database = {
             referencedRelation: "categories";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "product_images_product_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "product_images";
+            referencedColumns: ["product_id"];
+          },
         ];
       };
       profiles: {
@@ -243,6 +250,7 @@ export type Database = {
           created_at: string;
           id: string;
           inquiry_id: string;
+          quote_request_id: string | null;
           product_id: string | null;
           product_name: string | null;
           quantity: number;
@@ -250,7 +258,8 @@ export type Database = {
         Insert: {
           created_at?: string;
           id?: string;
-          inquiry_id: string;
+          inquiry_id?: string;
+          quote_request_id?: string | null;
           product_id?: string | null;
           product_name?: string | null;
           quantity?: number;
@@ -259,6 +268,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           inquiry_id?: string;
+          quote_request_id?: string | null;
           product_id?: string | null;
           product_name?: string | null;
           quantity?: number;
@@ -279,6 +289,36 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      quote_requests: {
+        Row: {
+          company_name: string | null;
+          contact_name: string;
+          created_at: string;
+          email: string | null;
+          id: string;
+          notes: string | null;
+          phone: string;
+        };
+        Insert: {
+          company_name?: string | null;
+          contact_name: string;
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          notes?: string | null;
+          phone: string;
+        };
+        Update: {
+          company_name?: string | null;
+          contact_name?: string;
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          notes?: string | null;
+          phone?: string;
+        };
+        Relationships: [];
       };
       user_roles: {
         Row: {

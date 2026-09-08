@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader, SiteLayout } from "@/components/site/SiteLayout";
 import { ProductGrid } from "@/components/catalog/ProductCard";
 import { EmptyState, ErrorState, ProductGridSkeleton } from "@/components/common/states";
-import { fetchCategories, fetchProducts } from "@/lib/api";
+import { fetchCategories } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
+import type { Category, Product, ProductImage } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -44,12 +46,60 @@ function ProductsPage() {
   const [category, setCategory] = useState(search.category ?? "all");
   const [availability, setAvailability] = useState("all");
   const [sort, setSort] = useState("name-asc");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<Error | null>(null);
 
-  const productsQuery = useQuery({ queryKey: ["products"], queryFn: () => fetchProducts() });
   const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
 
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, categories(*), product_images(*)");
+
+    if (error) {
+      setLoadError(error);
+      setLoading(false);
+      return;
+    }
+
+    const rows = (data ?? []) as unknown as Array<
+      Product & {
+        categories: Category | Category[] | null;
+        product_images: ProductImage[] | null;
+      }
+    >;
+
+    setProducts(
+      rows.map(({ categories, product_images, ...product }) => {
+        const joinedCategory = Array.isArray(categories) ? categories[0] : categories;
+        const firstImage = product_images?.[0]?.image_url ?? null;
+
+        return {
+          ...product,
+          image_url: product.image_url ?? firstImage,
+          category: joinedCategory
+            ? {
+                id: joinedCategory.id,
+                name: joinedCategory.name,
+                slug: joinedCategory.slug,
+              }
+            : null,
+        };
+      }),
+    );
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void loadProducts();
+  }, [loadProducts]);
+
   const filtered = useMemo(() => {
-    const list = (productsQuery.data ?? []).filter((product) => {
+    const list = products.filter((product) => {
       const haystack = `${product.name} ${product.description ?? ""} ${product.sku ?? ""} ${
         product.category?.name ?? ""
       }`.toLowerCase();
@@ -65,7 +115,7 @@ function ProductsPage() {
       if (sort === "availability") return a.availability.localeCompare(b.availability);
       return a.name.localeCompare(b.name);
     });
-  }, [productsQuery.data, term, category, availability, sort]);
+  }, [products, term, category, availability, sort]);
 
   return (
     <SiteLayout>
@@ -134,15 +184,15 @@ function ProductsPage() {
         </div>
 
         <div className="mt-10">
-          {productsQuery.isLoading ? <ProductGridSkeleton /> : null}
-          {productsQuery.isError ? (
+          {loading ? <ProductGridSkeleton /> : null}
+          {loadError ? (
             <ErrorState
               title="Catalogue unavailable"
               description="We could not load products right now."
-              onRetry={() => productsQuery.refetch()}
+              onRetry={() => void loadProducts()}
             />
           ) : null}
-          {productsQuery.data && filtered.length === 0 ? (
+          {!loading && !loadError && products.length > 0 && filtered.length === 0 ? (
             <EmptyState
               title="No products found"
               description="Try a different search term or clear the filters."

@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createInquiry } from "@/lib/api";
 import { categoryImage } from "@/lib/product-images";
 import { useQuoteBasket } from "@/lib/quote-basket";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/request-quote")({
   component: RequestQuotePage,
@@ -63,15 +63,30 @@ function RequestQuotePage() {
         .filter(Boolean)
         .join("\n");
 
-      await createInquiry({
-        customer_name: form.customer_name.trim(),
-        phone: form.phone.trim(),
-        email: form.email.trim() || null,
-        product_id: items[0]?.productId ?? null,
-        quantity: items.reduce((sum, item) => sum + item.quantity, 0),
-        message: extraDetails || null,
-        items,
-      });
+      const { data: quoteRequest, error: quoteRequestError } = await supabase
+        .from("quote_requests")
+        .insert({
+          company_name: form.business_name.trim() || null,
+          contact_name: form.customer_name.trim(),
+          email: form.email.trim() || null,
+          phone: form.phone.trim(),
+          notes: extraDetails || null,
+        })
+        .select("id")
+        .single();
+
+      if (quoteRequestError) throw quoteRequestError;
+
+      const { error: itemsError } = await supabase.from("quote_items").insert(
+        items.map((item) => ({
+          quote_request_id: quoteRequest.id,
+          product_id: item.productId,
+          product_name: item.productName,
+          quantity: item.quantity,
+        })),
+      );
+
+      if (itemsError) throw itemsError;
 
       clear();
       setSubmitted(true);
