@@ -20,16 +20,17 @@ export interface Product {
   description: string | null;
   category_id: string | null;
   sku: string | null;
-  price: number | null;
-  price_available: boolean;
-  availability: Availability;
+  retail_price: number | null;
+  wholesale_price: number | null;
+  is_active: boolean;
+  is_featured: boolean;
   stock_quantity: number;
   specifications: Record<string, string>;
   image_url: string | null;
-  featured: boolean;
   created_at: string;
   updated_at: string;
   category?: Pick<Category, "id" | "name" | "slug"> | null;
+  availability: Availability;
 }
 
 export interface ProductImage {
@@ -45,8 +46,9 @@ export interface InventoryRow {
   product_id: string;
   quantity: number;
   low_stock_threshold: number;
+  created_at: string;
   updated_at: string;
-  product?: Pick<Product, "id" | "name" | "sku" | "availability"> | null;
+  product?: Pick<Product, "id" | "name" | "sku" | "availability" | "stock_quantity"> | null;
 }
 
 export interface Inquiry {
@@ -77,6 +79,42 @@ export interface QuoteItem {
   quantity: number;
   imageUrl: string | null;
   categorySlug: string | null;
+  unitPrice: number | null;
+  priceAvailable: boolean;
+}
+
+export interface CartItem extends QuoteItem {}
+
+export type PaymentMethod = "cod" | "online";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type OrderStatus = "new" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+
+export interface OrderItem {
+  id: string;
+  product_id: string;
+  product_name_snapshot: string;
+  unit_price: number;
+  quantity: number;
+  line_total: number;
+}
+
+export interface Order {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  phone: string;
+  email: string | null;
+  address: string;
+  city: string;
+  subtotal: number;
+  delivery_fee: number;
+  total: number;
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
+  order_status: OrderStatus;
+  customer_note: string | null;
+  created_at: string;
+  items?: OrderItem[];
 }
 
 export interface InquiryInput {

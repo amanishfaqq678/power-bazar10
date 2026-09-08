@@ -19,8 +19,7 @@ export function Footer() {
             {site.tagline}
           </p>
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-            Wholesale and retail electrical products, presented clearly so you can choose with
-            confidence.
+            Electrical products with clear pricing, honest availability and simple online shopping.
           </p>
         </div>
 
@@ -47,7 +46,8 @@ export function Footer() {
             {[
               { label: "About", to: "/about" },
               { label: "Support", to: "/support" },
-              { label: "Browse Products", to: "/products" },
+              { label: "Products", to: "/products" },
+              { label: "Cart / Shopping", to: "/cart" },
             ].map((item) => (
               <li key={item.to}>
                 <Link
@@ -67,18 +67,18 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               <li>
                 <Link
-                  to="/request-quote"
+                  to="/ai-assistant"
                   className="text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
-                  Request a Quote
+                  AI Assistant
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/ai-assistant"
+                  to="/request-quote"
                   className="text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
-                  AI Product Assistant
+                  Need bulk quantities? Request a Bulk Quote
                 </Link>
               </li>
             </ul>

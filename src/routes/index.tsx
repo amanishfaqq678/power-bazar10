@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ShoppingExperienceEntry } from "@/components/site/ShoppingExperienceEntry";
+import { Home } from "./home";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Power Bazar — Choose Wholesale or Retail" },
+      { title: "Power Bazar — Electrical Products" },
       {
         name: "description",
-        content: "Choose the shopping experience: Wholesale or Retail at Power Bazar.",
+        content: "Shop electrical products online from Power Bazar.",
       },
     ],
   }),
-  component: ShoppingExperienceEntry,
+  component: Home,
 });

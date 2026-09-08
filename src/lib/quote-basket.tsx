@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { Product, QuoteItem } from "./types";
+import type { CartItem, Product } from "./types";
 
-const STORAGE_KEY = "power-bazar-quote-request";
+const STORAGE_KEY = "power-bazar-cart";
 
-interface QuoteBasketValue {
-  items: QuoteItem[];
+interface CartValue {
+  items: CartItem[];
   count: number;
   addItem: (product: Product, quantity?: number) => void;
   setQuantity: (productId: string, quantity: number) => void;
@@ -13,15 +13,15 @@ interface QuoteBasketValue {
   clear: () => void;
 }
 
-const QuoteBasketContext = createContext<QuoteBasketValue | null>(null);
+const CartContext = createContext<CartValue | null>(null);
 
 export function QuoteBasketProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<QuoteItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as QuoteItem[]);
+      if (raw) setItems(JSON.parse(raw) as CartItem[]);
     } catch {
       /* ignore malformed storage */
     }
@@ -52,6 +52,8 @@ export function QuoteBasketProvider({ children }: { children: ReactNode }) {
           quantity,
           imageUrl: product.image_url,
           categorySlug: product.category?.slug ?? null,
+          unitPrice: product.retail_price,
+          priceAvailable: product.is_active && product.retail_price != null,
         },
       ];
     });
@@ -71,7 +73,7 @@ export function QuoteBasketProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => setItems([]), []);
 
-  const value = useMemo<QuoteBasketValue>(
+  const value = useMemo<CartValue>(
     () => ({
       items,
       count: items.reduce((total, item) => total + item.quantity, 0),
@@ -83,11 +85,11 @@ export function QuoteBasketProvider({ children }: { children: ReactNode }) {
     [items, addItem, setQuantity, removeItem, clear],
   );
 
-  return <QuoteBasketContext.Provider value={value}>{children}</QuoteBasketContext.Provider>;
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useQuoteBasket() {
-  const context = useContext(QuoteBasketContext);
+  const context = useContext(CartContext);
   if (!context) throw new Error("useQuoteBasket must be used inside QuoteBasketProvider");
   return context;
 }

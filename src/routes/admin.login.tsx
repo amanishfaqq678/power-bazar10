@@ -5,12 +5,7 @@ import logo from "@/assets/power-bazar-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  isAdminAuthenticated,
-  isAdminDemoEnabled,
-  signInAdminDemo,
-  validateDemoAdminLogin,
-} from "@/lib/admin-auth";
+import { getAdminUser, signInAdmin } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLoginPage,
@@ -18,53 +13,35 @@ export const Route = createFileRoute("/admin/login")({
 
 function AdminLoginPage() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isAdminAuthenticated()) {
-      navigate({ to: "/admin/dashboard" });
-    }
+    void getAdminUser().then((user) => {
+      if (user) navigate({ to: "/admin/dashboard" });
+    });
   }, [navigate]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    if (!username.trim() || !password.trim()) {
-      setError("Enter both your username and password.");
-      return;
-    }
-
-    if (!isAdminDemoEnabled()) {
-      setError("Access is temporarily unavailable. Please contact your administrator.");
+    if (!email.trim() || !password.trim()) {
+      setError("Enter your email and password.");
       return;
     }
 
     setIsSubmitting(true);
-    const result = await validateDemoAdminLogin(username, password);
-    if (!result.ok) {
-      const friendlyMessage =
-        result.code === "ADMIN_NOT_CONFIGURED"
-          ? "Access is temporarily unavailable. Please contact your administrator."
-          : result.code === "INVALID_CREDENTIALS"
-            ? "Invalid username or password."
-            : result.code === "INVALID_INPUT"
-              ? "Enter both your username and password."
-              : result.code === "SERVER_ERROR"
-                ? "Unable to verify credentials right now. Please try again."
-                : result.message;
-
-      setError(friendlyMessage);
+    try {
+      await signInAdmin(email.trim(), password);
+      navigate({ to: "/admin/dashboard" });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to sign in. Please try again.");
       setIsSubmitting(false);
-      return;
     }
-
-    signInAdminDemo();
-    navigate({ to: "/admin/dashboard" });
     setIsSubmitting(false);
   }
 
@@ -100,14 +77,15 @@ function AdminLoginPage() {
             <form className="mt-7 space-y-5" onSubmit={handleSubmit} noValidate>
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-sm font-semibold text-foreground">
-                  Email / Username
+                  Email
                 </Label>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder="Enter your email or username"
-                  autoComplete="username"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Enter your admin email"
+                  autoComplete="email"
                   className="h-11 border-border bg-[#f8f8f5] text-foreground placeholder:text-muted-foreground"
                 />
               </div>

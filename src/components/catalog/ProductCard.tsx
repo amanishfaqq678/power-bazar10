@@ -8,6 +8,11 @@ import { useQuoteBasket } from "@/lib/quote-basket";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useQuoteBasket();
+  const canPurchase =
+    product.is_active &&
+    product.retail_price != null &&
+    Number.isFinite(Number(product.retail_price)) &&
+    product.availability !== "out_of_stock";
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-lift)]">
@@ -48,21 +53,21 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-4 flex items-center justify-between gap-3">
           <AvailabilityBadge availability={product.availability} />
           <span className="text-sm font-extrabold">
-            {product.price_available && product.price != null
-              ? `PKR ${Number(product.price).toLocaleString()}`
-              : "Request Price"}
+            {canPurchase ? `Rs. ${Number(product.retail_price).toLocaleString()}` : "Price unavailable"}
           </span>
         </div>
 
         <div className="mt-5 flex gap-2">
           <Button
             className="flex-1 rounded-full font-bold"
+            disabled={!canPurchase}
+            title={!canPurchase ? "This product is not currently available to purchase" : undefined}
             onClick={() => {
               addItem(product);
-              toast.success(`${product.name} added to your quote request`);
+              toast.success(`${product.name} added to your cart`);
             }}
           >
-            Request Quote
+            Add to Cart
           </Button>
           <Button asChild variant="outline" className="flex-1 rounded-full font-bold">
             <Link to="/products/$slug" params={{ slug: product.slug }}>

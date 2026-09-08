@@ -7,9 +7,11 @@ import type {
   InventoryRow,
   Product,
   ProductImage,
+  Order,
 } from "./types";
 import { notifyNewInquiry } from "@/services/automation";
 import { PRODUCT_IMAGE_BUCKET } from "@/config/site";
+import { getSupabaseClientConfig } from "@/integrations/supabase/env";
 
 /* ---------------------------------- data access layer ----------------------
  * All database access lives here so presentation components never talk to the
@@ -17,6 +19,28 @@ import { PRODUCT_IMAGE_BUCKET } from "@/config/site";
  * ------------------------------------------------------------------------- */
 
 const PRODUCT_SELECT = "*, category:categories(id, name, slug)";
+
+function normalizeProduct(product: Product): Product {
+  const stockQuantity = Number(product.stock_quantity) || 0;
+  const retailPrice =
+    product.retail_price == null || !Number.isFinite(Number(product.retail_price))
+      ? null
+      : Number(product.retail_price);
+  return {
+    ...product,
+    retail_price: retailPrice,
+    wholesale_price:
+      product.wholesale_price == null || !Number.isFinite(Number(product.wholesale_price))
+        ? null
+        : Number(product.wholesale_price),
+    stock_quantity: stockQuantity,
+    availability: !product.is_active || stockQuantity <= 0
+      ? "out_of_stock"
+      : stockQuantity <= 10
+        ? "low_stock"
+        : "in_stock",
+  };
+}
 
 function logSupabaseFailure(operation: string, error: unknown) {
   const message =
@@ -33,7 +57,7 @@ export async function fetchCategories(): Promise<Category[]> {
   const { data, error } = await supabase
     .from("categories")
     .select("*")
-    .order("sort_order", { ascending: true });
+    .order("name", { ascending: true });
   if (error) {
     logSupabaseFailure("fetchCategories", error);
     throw error;
@@ -61,7 +85,7 @@ export async function fetchProducts(options?: {
 }): Promise<Product[]> {
   let query = supabase.from("products").select(PRODUCT_SELECT);
   if (options?.categoryId) query = query.eq("category_id", options.categoryId);
-  if (options?.featuredOnly) query = query.eq("featured", true);
+  if (options?.featuredOnly) query = query.eq("is_featured", true);
   query = query.order("created_at", { ascending: true });
   if (options?.limit) query = query.limit(options.limit);
   const { data, error } = await query;
@@ -69,7 +93,7 @@ export async function fetchProducts(options?: {
     logSupabaseFailure("fetchProducts", error);
     throw error;
   }
-  return (data ?? []) as unknown as Product[];
+  return (data ?? []).map((product) => normalizeProduct(product as unknown as Product));
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
@@ -82,7 +106,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     logSupabaseFailure("fetchProductBySlug", error);
     throw error;
   }
-  return (data as unknown as Product) ?? null;
+  return data ? normalizeProduct(data as unknown as Product) : null;
 }
 
 export async function fetchProductById(id: string): Promise<Product | null> {
@@ -95,7 +119,7 @@ export async function fetchProductById(id: string): Promise<Product | null> {
     logSupabaseFailure("fetchProductById", error);
     throw error;
   }
-  return (data as unknown as Product) ?? null;
+  return data ? normalizeProduct(data as unknown as Product) : null;
 }
 
 export async function fetchProductImages(productId: string): Promise<ProductImage[]> {
@@ -109,6 +133,91 @@ export async function fetchProductImages(productId: string): Promise<ProductImag
     throw error;
   }
   return (data ?? []) as unknown as ProductImage[];
+}
+
+const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PRODUCT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+function validateProductImage(file: File) {
+  if (!ALLOWED_PRODUCT_IMAGE_TYPES.has(file.type)) {
+    throw new Error("Please choose a JPEG, PNG, WebP, or GIF image.");
+  }
+  if (file.size > MAX_PRODUCT_IMAGE_BYTES) {
+    throw new Error("Each product image must be 5 MB or smaller.");
+  }
+}
+
+function storagePathForProductImage(productId: string, imageUrl: string) {
+  const marker = `/storage/v1/object/public/${PRODUCT_IMAGE_BUCKET}/`;
+  if (!imageUrl.startsWith(marker)) return null;
+  const path = decodeURIComponent(imageUrl.slice(marker.length));
+  return path.startsWith(`products/${productId}/`) ? path : null;
+}
+
+export async function uploadProductImage(
+  productId: string,
+  file: File,
+  sortOrder: number,
+): Promise<ProductImage> {
+  validateProductImage(file);
+  const extension = file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];
+  const path = `products/${productId}/${crypto.randomUUID()}.${extension}`;
+  const { error: uploadError } = await supabase.storage.from(PRODUCT_IMAGE_BUCKET).upload(path, file, {
+    cacheControl: "31536000",
+    contentType: file.type,
+    upsert: false,
+  });
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrl } = supabase.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(path);
+  const { data, error } = await supabase
+    .from("product_images")
+    .insert({
+      product_id: productId,
+      image_url: publicUrl.publicUrl,
+      alt_text: file.name,
+      sort_order: sortOrder,
+    })
+    .select("*")
+    .single();
+  if (error) {
+    await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
+    throw error;
+  }
+  return data as unknown as ProductImage;
+}
+
+export async function deleteProductImage(image: ProductImage) {
+  const path = storagePathForProductImage(image.product_id, image.image_url);
+  if (path) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const { url, publishableKey } = getSupabaseClientConfig();
+    if (!sessionData.session?.access_token || !url || !publishableKey) {
+      throw new Error("Your admin session has expired. Sign in again to remove this image.");
+    }
+    const response = await fetch(`${url}/storage/v1/object/${PRODUCT_IMAGE_BUCKET}/${path}`, {
+      method: "DELETE",
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Unable to remove the storage image (${response.status}).`);
+    }
+  }
+  const { error } = await supabase.from("product_images").delete().eq("id", image.id);
+  if (error) throw error;
+}
+
+export async function reorderProductImages(images: ProductImage[]) {
+  const results = await Promise.all(
+    images.map((image, index) =>
+      supabase.from("product_images").update({ sort_order: index }).eq("id", image.id),
+    ),
+  );
+  const error = results.find((result) => result.error)?.error;
+  if (error) throw error;
 }
 
 export async function fetchRelatedProducts(
@@ -125,7 +234,27 @@ export async function fetchRelatedProducts(
     logSupabaseFailure("fetchRelatedProducts", error);
     throw error;
   }
-  return (data ?? []) as unknown as Product[];
+
+  return (data ?? []).map((product) => normalizeProduct(product as unknown as Product));
+}
+
+export async function createCodOrder(input: {
+  customer_name: string;
+  phone: string;
+  email?: string | null;
+  address: string;
+  city: string;
+  customer_note?: string | null;
+  items: Array<{ product_id: string; quantity: number }>;
+}): Promise<Order> {
+  const { data, error } = await supabase.rpc("create_cod_order", {
+    order_input: input,
+  });
+  if (error) {
+    logSupabaseFailure("createCodOrder", error);
+    throw error;
+  }
+  return data as unknown as Order;
 }
 
 /* ------------------------------- inquiries ------------------------------- */
@@ -188,35 +317,22 @@ export type ProductDraft = {
   description: string | null;
   category_id: string | null;
   sku: string | null;
-  price: number | null;
-  price_available: boolean;
-  availability: string;
+  retail_price: number | null;
+  wholesale_price: number | null;
+  is_active: boolean;
+  is_featured: boolean;
   stock_quantity: number;
-  specifications: Record<string, string>;
-  image_url: string | null;
-  featured: boolean;
 };
 
 export async function createProduct(draft: ProductDraft) {
   const { data, error } = await supabase.from("products").insert(draft).select("id").single();
   if (error) throw error;
-  await supabase
-    .from("inventory")
-    .upsert(
-      { product_id: (data as { id: string }).id, quantity: draft.stock_quantity },
-      { onConflict: "product_id" },
-    );
   return data as { id: string };
 }
 
 export async function updateProduct(id: string, draft: Partial<ProductDraft>) {
   const { error } = await supabase.from("products").update(draft).eq("id", id);
   if (error) throw error;
-  if (typeof draft.stock_quantity === "number") {
-    await supabase
-      .from("inventory")
-      .upsert({ product_id: id, quantity: draft.stock_quantity }, { onConflict: "product_id" });
-  }
 }
 
 export async function deleteProduct(id: string) {
@@ -230,9 +346,9 @@ export async function upsertCategory(input: {
   slug: string;
   description: string | null;
   image_url: string | null;
-  sort_order: number;
+  sort_order?: number;
 }) {
-  const { id, ...rest } = input;
+  const { id, sort_order: _sortOrder, ...rest } = input;
   if (id) {
     const { error } = await supabase.from("categories").update(rest).eq("id", id);
     if (error) throw error;
@@ -260,10 +376,26 @@ export async function deleteCategory(id: string) {
 export async function fetchInventory(): Promise<InventoryRow[]> {
   const { data, error } = await supabase
     .from("inventory")
-    .select("*, product:products(id, name, sku, availability)")
+    .select("*, product:products(id, name, sku, stock_quantity, is_active)")
     .order("updated_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as unknown as InventoryRow[];
+}
+
+export async function fetchAdminOrders(): Promise<Order[]> {
+  const { data, error } = await supabase.from("orders").select("*, items:order_items(*)").order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as Order[];
+}
+
+export async function updateOrderStatus(id: string, order_status: Order["order_status"]) {
+  const { error } = await supabase.from("orders").update({ order_status }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updatePaymentStatus(id: string, payment_status: Order["payment_status"]) {
+  const { error } = await supabase.from("orders").update({ payment_status }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function updateInventory(
@@ -271,37 +403,19 @@ export async function updateInventory(
   productId: string,
   values: { quantity: number; low_stock_threshold: number },
 ) {
-  const { error } = await supabase.from("inventory").update(values).eq("id", id);
-  if (error) throw error;
-  const availability =
-    values.quantity <= 0
-      ? "out_of_stock"
-      : values.quantity <= values.low_stock_threshold
-        ? "low_stock"
-        : "in_stock";
-  const { error: productError } = await supabase
+  const { error } = await supabase
     .from("products")
-    .update({ stock_quantity: values.quantity, availability })
+    .update({ stock_quantity: values.quantity })
     .eq("id", productId);
+  if (error) throw error;
+  const { error: productError } = await supabase
+    .from("inventory")
+    .update({ quantity: values.quantity, low_stock_threshold: values.low_stock_threshold })
+    .eq("id", id);
   if (productError) throw productError;
 }
 
 /** Uploads to the private product image store and returns a long-lived signed URL. */
-export async function uploadProductImage(file: File): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from(PRODUCT_IMAGE_BUCKET).upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-  });
-  if (error) throw error;
-  const { data, error: signError } = await supabase.storage
-    .from(PRODUCT_IMAGE_BUCKET)
-    .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-  if (signError || !data) throw signError ?? new Error("Could not create image URL");
-  return data.signedUrl;
-}
-
 export function slugify(value: string) {
   return value
     .toLowerCase()

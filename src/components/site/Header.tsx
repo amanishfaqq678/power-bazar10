@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeftRight, Menu, Search, Sparkles, X, FileText } from "lucide-react";
+import { Menu, Search, Sparkles, X, ShoppingCart } from "lucide-react";
 import logo from "@/assets/power-bazar-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export function Header() {
             <Link
               key={item.to}
               to={item.to}
-              activeOptions={{ exact: item.to === "/" }}
+              activeOptions={{ exact: false }}
               activeProps={{ className: "text-primary" }}
               className="rounded-full px-3.5 py-2 text-sm font-bold text-foreground/80 transition-colors hover:text-primary"
             >
@@ -81,28 +81,22 @@ export function Header() {
           </Button>
 
           <Button asChild variant="ghost" className="hidden font-bold lg:inline-flex">
-            <Link to="/">
-              <ArrowLeftRight className="size-4" aria-hidden="true" />
-              Switch Experience
-            </Link>
-          </Button>
-
-          <Button asChild variant="ghost" className="hidden font-bold lg:inline-flex">
             <Link to="/ai-assistant">
               <Sparkles className="size-4" aria-hidden="true" />
               AI Assistant
             </Link>
           </Button>
 
-          <Button asChild className="hidden rounded-full font-extrabold lg:inline-flex">
-            <a href="/request-quote">
-              Request a Quote
+          <Button asChild className="rounded-full font-extrabold">
+            <Link to="/cart">
+              <ShoppingCart className="size-4" aria-hidden="true" />
+              Cart
               {count > 0 ? (
                 <span className="ml-1 rounded-full bg-primary-foreground/20 px-1.5 text-xs">
                   {count}
                 </span>
               ) : null}
-            </a>
+            </Link>
           </Button>
 
           <Button
@@ -151,7 +145,6 @@ export function Header() {
               { label: "Products", to: "/products" },
               { label: "Categories", to: "/categories" },
               { label: "AI Product Assistant", to: "/ai-assistant" },
-             { label: "Switch Experience", to: "/" },
              { label: "About", to: "/about" },
              { label: "Support", to: "/support" },
             ].map((item) => (
@@ -167,10 +160,10 @@ export function Header() {
               </Link>
             ))}
             <Button asChild className="mt-3 h-12 rounded-full font-extrabold">
-              <a href="/request-quote" onClick={() => setMenuOpen(false)}>
-                <FileText className="size-4" aria-hidden="true" />
-                Request a Quote{count > 0 ? ` (${count})` : ""}
-              </a>
+              <Link to="/cart" onClick={() => setMenuOpen(false)}>
+                <ShoppingCart className="size-4" aria-hidden="true" />
+                Cart{count > 0 ? ` (${count})` : ""}
+              </Link>
             </Button>
           </nav>
         </div>

@@ -71,7 +71,7 @@ export async function askAssistant(question: string): Promise<AssistantReply> {
       if (product.category_id && matchedCategories.some((c) => c.id === product.category_id)) {
         score += 3;
       }
-      if (product.availability === "in_stock") score += 1;
+      if (product.is_active && product.stock_quantity > 0) score += 1;
       return { product, score };
     })
     .filter((entry) => entry.score > 0)

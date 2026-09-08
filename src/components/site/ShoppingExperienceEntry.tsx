@@ -52,6 +52,7 @@ export function ShoppingExperienceEntry() {
 
           <Link
             to="/products"
+            search={{ q: undefined, category: undefined }}
             className="group rounded-[28px] border border-border bg-card p-8 text-left shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="flex items-start gap-4">

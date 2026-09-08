@@ -21,13 +21,13 @@ export const Route = createFileRoute("/home")({
       {
         name: "description",
         content:
-          "Reliable electrical products for homes, shops and businesses. Browse LED lighting, switches, sockets, extensions and protection — then request a quote.",
+          "Shop reliable electrical products for homes, shops and businesses with clear pricing and direct checkout.",
       },
       { property: "og:title", content: "Power Bazar — Powering Your World" },
       {
         property: "og:description",
         content:
-          "Wholesale and retail electrical products, made easier to find, understand and choose.",
+          "Electrical products made easier to find, understand and buy online.",
       },
     ],
   }),
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/home")({
 
 const TRUST = [
   { title: "Reliable Products", copy: "Everyday electrical items chosen for dependable use." },
-  { title: "Wholesale Supply", copy: "Bulk quantities for projects, shops and contractors." },
+  { title: "Bulk Supply", copy: "Bulk quantities remain available for projects, shops and contractors." },
   { title: "Wide Selection", copy: "Lighting, wiring, switching and protection in one place." },
   { title: "Helpful Support", copy: "Straight answers before you commit to a purchase." },
 ];
@@ -48,7 +48,7 @@ const WHY = [
   { title: "Helpful Service", copy: "Real people responding to your product questions." },
 ];
 
-function Home() {
+export function Home() {
   const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
   const featuredQuery = useQuery({
     queryKey: ["products", "featured"],
@@ -60,7 +60,7 @@ function Home() {
       <section className="border-b border-border">
         <div className="container-pb grid items-center gap-12 py-14 lg:grid-cols-2 lg:py-20">
           <div>
-            <p className="eyebrow">Electrical Products · Wholesale & Retail</p>
+            <p className="eyebrow">Electrical Products · Online Store</p>
             <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
               POWERING <span className="text-primary">YOUR WORLD.</span>
             </h1>
@@ -81,7 +81,7 @@ function Home() {
                 variant="outline"
                 className="h-12 rounded-full px-7 font-extrabold"
               >
-                <a href="/request-quote">Request a Quote</a>
+                <a href="/request-quote">Need bulk quantities?</a>
               </Button>
             </div>
           </div>
@@ -266,7 +266,7 @@ function Home() {
             variant="outline"
             className="h-12 rounded-full px-7 font-extrabold"
           >
-            <a href="/request-quote">Request a quote</a>
+            <a href="/request-quote">Request a Bulk Quote</a>
           </Button>
           <Button
             asChild
@@ -286,11 +286,11 @@ function Home() {
             <h2 className="mt-4 text-xl font-extrabold">Store & contact details</h2>
             <p className="mt-3 text-sm text-muted-foreground">
               Verified store information — address, phone number and opening hours — will be added
-              here as soon as it is provided by Power Bazar. Until then, please use the quote
-              request form and the team will get back to you.
+              here as soon as it is provided by Power Bazar. For bulk quantities or business supply,
+              send a request and the team will get back to you.
             </p>
             <Button asChild className="mt-6 rounded-full font-bold">
-              <a href="/request-quote">Send an inquiry</a>
+              <a href="/request-quote">Request a Bulk Quote</a>
             </Button>
           </div>
         </div>

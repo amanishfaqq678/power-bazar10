@@ -33,7 +33,7 @@ export const Route = createFileRoute("/products/")({
       { property: "og:title", content: "Electrical Products Catalogue | Power Bazar" },
       {
         property: "og:description",
-        content: "Search, filter and request a quote on Power Bazar electrical products.",
+        content: "Search and shop Power Bazar electrical products with clear retail pricing.",
       },
     ],
   }),
@@ -76,11 +76,25 @@ function ProductsPage() {
     setProducts(
       rows.map(({ categories, product_images, ...product }) => {
         const joinedCategory = Array.isArray(categories) ? categories[0] : categories;
-        const firstImage = product_images?.[0]?.image_url ?? null;
+        const firstImage = [...(product_images ?? [])]
+          .sort((a, b) => a.sort_order - b.sort_order)[0]?.image_url ?? null;
+
+        const retailPrice =
+          product.retail_price == null || !Number.isFinite(Number(product.retail_price))
+            ? null
+            : Number(product.retail_price);
+        const stockQuantity = Number(product.stock_quantity) || 0;
 
         return {
           ...product,
-          image_url: product.image_url ?? firstImage,
+          retail_price: retailPrice,
+          stock_quantity: stockQuantity,
+          availability: !product.is_active || stockQuantity <= 0
+            ? "out_of_stock"
+            : stockQuantity <= 10
+              ? "low_stock"
+              : "in_stock",
+          image_url: firstImage ?? product.image_url,
           category: joinedCategory
             ? {
                 id: joinedCategory.id,
@@ -122,7 +136,7 @@ function ProductsPage() {
       <PageHeader
         eyebrow="Catalogue"
         title="Products"
-        description="Everything Power Bazar supplies, in one searchable catalogue. Pricing is confirmed per inquiry."
+        description="Browse Power Bazar electrical products with clear retail pricing and availability."
       />
 
       <section className="container-pb py-10">

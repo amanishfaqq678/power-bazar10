@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { PageHeader, SiteLayout } from "@/components/site/SiteLayout";
-import { fetchProductBySlug } from "@/lib/api";
+import { fetchProductBySlug, fetchProductImages, fetchRelatedProducts } from "@/lib/api";
 import { useQuoteBasket } from "@/lib/quote-basket";
 import { Button } from "@/components/ui/button";
 import { AvailabilityBadge } from "@/components/catalog/AvailabilityBadge";
 import { toast } from "sonner";
+import { categoryImage } from "@/lib/product-images";
+import { Input } from "@/components/ui/input";
+import { ProductGrid } from "@/components/catalog/ProductCard";
 
 export const Route = createFileRoute("/products/$slug")({
   component: ProductPage,
@@ -14,6 +18,9 @@ export const Route = createFileRoute("/products/$slug")({
 function ProductPage() {
   const { slug } = Route.useParams();
   const { addItem } = useQuoteBasket();
+  const navigate = useNavigate();
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   const productQuery = useQuery({
     queryKey: ["product", slug],
@@ -21,6 +28,16 @@ function ProductPage() {
   });
 
   const product = productQuery.data;
+  const imagesQuery = useQuery({
+    queryKey: ["product-images", product?.id],
+    queryFn: () => fetchProductImages(product!.id),
+    enabled: Boolean(product?.id),
+  });
+  const relatedQuery = useQuery({
+    queryKey: ["related-products", product?.id],
+    queryFn: () => fetchRelatedProducts(product!),
+    enabled: Boolean(product?.id),
+  });
 
   if (productQuery.isLoading) {
     return (
@@ -51,10 +68,22 @@ function ProductPage() {
 
   const currentProduct = product;
 
-  function handleAddToQuote() {
-    if (!currentProduct) return;
-    addItem(currentProduct, 1);
-    toast.success(`${currentProduct.name} added to your quote request`);
+  const canPurchase =
+    product.is_active &&
+    product.retail_price != null &&
+    Number.isFinite(Number(product.retail_price)) &&
+    product.availability !== "out_of_stock";
+
+  function handleAddToCart() {
+    if (!canPurchase) return;
+    addItem(currentProduct, quantity);
+    toast.success(`${currentProduct.name} added to your cart`);
+  }
+
+  function handleBuyNow() {
+    if (!canPurchase) return;
+    addItem(currentProduct, quantity);
+    void navigate({ to: "/checkout" });
   }
 
   return (
@@ -68,17 +97,32 @@ function ProductPage() {
       <section className="container-pb py-10">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            {product.image_url ? (
-              <img
-                src={product.image_url}
-                alt={product.name}
-                width={1200}
-                height={900}
-                className="w-full rounded-xl object-contain"
-              />
-            ) : (
-              <div className="h-60 w-full rounded-xl bg-surface" />
-            )}
+            <img
+              src={
+                imagesQuery.data?.[selectedImage]?.image_url ??
+                product.image_url ??
+                categoryImage(product.category?.slug, null)
+              }
+              alt={product.name}
+              width={1200}
+              height={900}
+              className="w-full rounded-xl object-contain"
+            />
+            {imagesQuery.data && imagesQuery.data.length > 1 ? (
+              <div className="mt-4 flex flex-wrap gap-3">
+                {imagesQuery.data.map((image, index) => (
+                  <button
+                    key={image.id}
+                    type="button"
+                    onClick={() => setSelectedImage(index)}
+                    className={`overflow-hidden rounded-lg border-2 ${selectedImage === index ? "border-primary" : "border-border"}`}
+                    aria-label={`View product image ${index + 1}`}
+                  >
+                    <img src={image.image_url} alt={image.alt_text ?? `${product.name} image ${index + 1}`} className="size-20 object-cover" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
 
             {product.description ? (
               <div className="mt-6 prose max-w-none text-muted-foreground">
@@ -107,16 +151,35 @@ function ProductPage() {
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">Price</div>
                 <div className="mt-1 text-lg font-extrabold">
-                  {product.price_available && product.price != null
-                    ? `PKR ${Number(product.price).toLocaleString()}`
-                    : "Request Price"}
+                  {product.is_active && product.retail_price != null
+                    ? `PKR ${Number(product.retail_price).toLocaleString()}`
+                    : "Price unavailable"}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3">
-              <Button className="flex-1 rounded-full font-bold" onClick={handleAddToQuote}>
-                Add to Quote
+            {product.sku ? <p className="mt-4 text-sm text-muted-foreground">SKU: {product.sku}</p> : null}
+
+            <div className="mt-6">
+              <label htmlFor="product-quantity" className="text-sm font-bold">Quantity</label>
+              <Input
+                id="product-quantity"
+                type="number"
+                min={1}
+                max={product.stock_quantity || 1}
+                value={quantity}
+                onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
+                className="mt-2 h-11 w-28"
+                disabled={!canPurchase}
+              />
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button className="flex-1 rounded-full font-bold" onClick={handleAddToCart} disabled={!canPurchase}>
+                Add to Cart
+              </Button>
+              <Button className="flex-1 rounded-full font-bold" onClick={handleBuyNow} disabled={!canPurchase}>
+                Buy Now
               </Button>
               <Button asChild variant="outline" className="rounded-full font-bold">
                 <a href="/products">Back to catalogue</a>
@@ -124,10 +187,20 @@ function ProductPage() {
             </div>
 
             <div className="mt-4 text-xs text-muted-foreground">
-              Pricing is confirmed per enquiry — use the quote request to get current bulk pricing.
+              {canPurchase
+                ? "Secure checkout available with Cash on Delivery."
+                : "This product does not have a published retail price yet."}
             </div>
           </aside>
         </div>
+        {relatedQuery.data && relatedQuery.data.length > 0 ? (
+          <div className="mt-14">
+            <h2 className="text-2xl font-extrabold">Related products</h2>
+            <div className="mt-6">
+              <ProductGrid products={relatedQuery.data} />
+            </div>
+          </div>
+        ) : null}
       </section>
     </SiteLayout>
   );

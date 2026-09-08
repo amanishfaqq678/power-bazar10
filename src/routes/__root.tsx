@@ -79,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Power Bazar — Electrical Products Wholesale & Retail" },
+          { title: "Power Bazar — Electrical Products" },
       {
         name: "description",
         content:
-          "Power Bazar supplies reliable electrical products for homes, shops and businesses. Browse the catalogue and request a quote.",
+          "Shop reliable electrical products for homes, shops and businesses with delivery across Pakistan.",
       },
       { property: "og:site_name", content: "Power Bazar" },
       { property: "og:type", content: "website" },

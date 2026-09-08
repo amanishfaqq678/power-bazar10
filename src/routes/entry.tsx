@@ -22,7 +22,7 @@ function EntryPage() {
     try {
       const seen = localStorage.getItem("powerbazar_entry_seen");
       if (seen === "true") {
-        navigate({ to: "/products" });
+        navigate({ to: "/products", search: { q: undefined, category: undefined } });
       }
     } catch (_) {
       // ignore
