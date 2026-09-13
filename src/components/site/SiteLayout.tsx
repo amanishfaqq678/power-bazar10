@@ -6,7 +6,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main id="main" className="flex-1">
+      <main id="main" className="flex-1 focus:outline-none">
         {children}
       </main>
       <Footer />
@@ -27,7 +27,7 @@ export function PageHeader({
 }) {
   return (
     <section className="border-b border-border bg-surface">
-      <div className="container-pb py-12 sm:py-16">
+      <div className="container-pb section-pb">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">{title}</h1>
         {description ? (

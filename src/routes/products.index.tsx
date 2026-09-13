@@ -125,6 +125,8 @@ function ProductsPage() {
 
     return [...list].sort((a, b) => {
       if (sort === "name-desc") return b.name.localeCompare(a.name);
+      if (sort === "price-low") return (a.retail_price ?? Number.POSITIVE_INFINITY) - (b.retail_price ?? Number.POSITIVE_INFINITY);
+      if (sort === "price-high") return (b.retail_price ?? -1) - (a.retail_price ?? -1);
       if (sort === "newest") return b.created_at.localeCompare(a.created_at);
       if (sort === "availability") return a.availability.localeCompare(b.availability);
       return a.name.localeCompare(b.name);
@@ -136,11 +138,11 @@ function ProductsPage() {
       <PageHeader
         eyebrow="Catalogue"
         title="Products"
-        description="Browse Power Bazar electrical products with clear retail pricing and availability."
+        description="Browse our electrical products and find what you need."
       />
 
       <section className="container-pb py-10">
-        <div className="grid gap-4 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] lg:grid-cols-4">
+        <div className="grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] lg:grid-cols-4">
           <div className="lg:col-span-2">
             <Label htmlFor="product-search" className="font-bold">
               Search
@@ -190,6 +192,8 @@ function ProductsPage() {
               options={[
                 { value: "name-asc", label: "Name A–Z" },
                 { value: "name-desc", label: "Name Z–A" },
+                { value: "price-low", label: "Price low to high" },
+                { value: "price-high", label: "Price high to low" },
                 { value: "newest", label: "Newest first" },
                 { value: "availability", label: "Availability" },
               ]}
@@ -217,7 +221,9 @@ function ProductsPage() {
               <p className="mb-6 text-sm text-muted-foreground" aria-live="polite">
                 {filtered.length} product{filtered.length === 1 ? "" : "s"}
               </p>
-              <ProductGrid products={filtered} />
+              <div className="motion-fade-in">
+                <ProductGrid products={filtered} />
+              </div>
             </>
           ) : null}
         </div>

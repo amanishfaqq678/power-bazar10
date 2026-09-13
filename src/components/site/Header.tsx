@@ -24,10 +24,17 @@ export function Header() {
   const { count } = useQuoteBasket();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setScrolled(window.scrollY > 8));
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   function submitSearch(event: React.FormEvent) {
@@ -40,18 +47,18 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 border-b bg-background/95 backdrop-blur transition-shadow",
+        "sticky top-0 z-50 border-b bg-background/90 backdrop-blur-md transition-[border-color,box-shadow,background-color] duration-300",
         scrolled ? "border-border shadow-[var(--shadow-header)]" : "border-transparent",
       )}
     >
-      <div className="container-pb flex h-18 items-center justify-between gap-4 py-3">
+      <div className="container-pb flex min-h-16 items-center justify-between gap-3 py-2.5 sm:min-h-[4.5rem] sm:py-3">
         <Link to="/home" className="flex shrink-0 items-center" aria-label="Power Bazar home">
           <img
             src={logo}
             alt="Power Bazar — Powering Your World"
             width={180}
             height={120}
-            className="h-11 w-auto sm:h-12"
+            className="h-10 w-auto sm:h-11"
           />
         </Link>
 
@@ -62,9 +69,10 @@ export function Header() {
               to={item.to}
               activeOptions={{ exact: false }}
               activeProps={{ className: "text-primary" }}
-              className="rounded-full px-3.5 py-2 text-sm font-bold text-foreground/80 transition-colors hover:text-primary"
+              className="group relative rounded-full px-3.5 py-2 text-sm font-bold text-foreground/80 transition-colors hover:text-primary"
             >
               {item.label}
+              <span className="absolute inset-x-3.5 bottom-1 h-0.5 origin-left scale-x-0 rounded-full bg-primary transition-transform duration-200 group-hover:scale-x-100" aria-hidden="true" />
             </Link>
           ))}
         </nav>
@@ -87,12 +95,12 @@ export function Header() {
             </Link>
           </Button>
 
-          <Button asChild className="rounded-full font-extrabold">
+          <Button asChild className="rounded-full font-extrabold shadow-sm">
             <Link to="/cart">
               <ShoppingCart className="size-4" aria-hidden="true" />
               Cart
               {count > 0 ? (
-                <span className="ml-1 rounded-full bg-primary-foreground/20 px-1.5 text-xs">
+                <span className="ml-1 min-w-5 rounded-full bg-primary-foreground/20 px-1.5 text-center text-xs tabular-nums">
                   {count}
                 </span>
               ) : null}
@@ -116,8 +124,8 @@ export function Header() {
         </div>
       </div>
 
-      {searchOpen ? (
-        <div className="border-t border-border bg-background">
+      <div className={cn("grid overflow-hidden border-t border-border bg-background transition-[grid-template-rows,opacity] duration-300", searchOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} aria-hidden={!searchOpen} inert={!searchOpen ? true : undefined}>
+        <div className="min-h-0">
           <form className="container-pb flex gap-2 py-3" onSubmit={submitSearch} role="search">
             <label htmlFor="header-search" className="sr-only">
               Search products
@@ -135,10 +143,10 @@ export function Header() {
             </Button>
           </form>
         </div>
-      ) : null}
+      </div>
 
-      {menuOpen ? (
-        <div className="border-t border-border bg-background lg:hidden">
+      <div className={cn("grid overflow-hidden border-t border-border bg-background transition-[grid-template-rows,opacity] duration-300 lg:hidden", menuOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} aria-hidden={!menuOpen} inert={!menuOpen ? true : undefined}>
+        <div className="min-h-0">
           <nav aria-label="Mobile" className="container-pb flex flex-col py-3">
             {[
              { label: "Home", to: "/home" },
@@ -167,7 +175,7 @@ export function Header() {
             </Button>
           </nav>
         </div>
-      ) : null}
+      </div>
     </header>
   );
 }

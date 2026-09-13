@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, MapPin, MessageSquare, Sparkles } from "lucide-react";
+import type { CSSProperties } from "react";
+import { ArrowRight, MessageSquare, Sparkles } from "lucide-react";
 import heroImage from "@/assets/hero-products.jpg";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { CategoryCard } from "@/components/catalog/CategoryCard";
-import { ProductGrid } from "@/components/catalog/ProductCard";
+import { ProductCard } from "@/components/catalog/ProductCard";
 import {
   EmptyState,
   ErrorState,
@@ -34,19 +35,14 @@ export const Route = createFileRoute("/home")({
   component: Home,
 });
 
-const TRUST = [
-  { title: "Reliable Products", copy: "Everyday electrical items chosen for dependable use." },
-  { title: "Bulk Supply", copy: "Bulk quantities remain available for projects, shops and contractors." },
-  { title: "Wide Selection", copy: "Lighting, wiring, switching and protection in one place." },
-  { title: "Helpful Support", copy: "Straight answers before you commit to a purchase." },
+const WHY = [
+  { title: "Quality products.", copy: "Electrical essentials selected for dependable everyday use." },
+  { title: "Straightforward shopping.", copy: "Clear product information and simple online ordering." },
+  { title: "Built for everyday needs.", copy: "Lighting, wiring, switching and protection in one place." },
 ];
 
-const WHY = [
-  { title: "Reliable", copy: "Products selected for consistent everyday performance." },
-  { title: "Practical", copy: "Clear specifications, no confusing jargon." },
-  { title: "Accessible", copy: "Retail quantities and wholesale supply, both welcome." },
-  { title: "Helpful Service", copy: "Real people responding to your product questions." },
-];
+const MOVING_WORDS = ["SWITCHES", "LIGHTING", "SOCKETS", "ELECTRICAL", "BOARDS"];
+const BRAND_STRIP = ["POWER BAZAR", "ELECTRICAL PRODUCTS", "LIGHTING", "SWITCHES", "SOCKETS", "BOARDS"];
 
 export function Home() {
   const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
@@ -57,66 +53,59 @@ export function Home() {
 
   return (
     <SiteLayout>
-      <section className="border-b border-border">
-        <div className="container-pb grid items-center gap-12 py-14 lg:grid-cols-2 lg:py-20">
-          <div>
-            <p className="eyebrow">Electrical Products · Online Store</p>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
-              POWERING <span className="text-primary">YOUR WORLD.</span>
+      <section className="relative isolate overflow-hidden border-b border-border bg-surface">
+        <div aria-hidden="true" className="hero-grid absolute inset-0 opacity-60" />
+        <div aria-hidden="true" className="absolute -right-32 top-16 size-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="container-pb relative grid items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-24">
+          <div className="max-w-2xl">
+            <p className="eyebrow motion-fade-up">Electrical products · online store</p>
+            <h1 className="motion-fade-up mt-4 max-w-xl text-5xl font-extrabold leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-8xl">
+              POWERING
+              <span className="block text-primary">EVERY SPACE.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-              Reliable electrical products for homes, shops and businesses — made easier to find,
-              understand and choose.
+            <p className="motion-fade-up motion-stagger mt-6 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg" style={{ "--stagger-index": 1 } as CSSProperties}>
+              Find lighting, wiring, switches and other electrical essentials with clear product information and simple online shopping.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
+            <div className="motion-fade-up motion-stagger mt-8 flex flex-wrap gap-3" style={{ "--stagger-index": 2 } as CSSProperties}>
               <Button asChild size="lg" className="h-12 rounded-full px-7 font-extrabold">
                 <Link to="/products" search={{ q: undefined, category: undefined }}>
-                  Explore Products
-                  <ArrowRight className="size-4" aria-hidden="true" />
+                  Shop Products <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-12 rounded-full px-7 font-extrabold"
-              >
-                <a href="/request-quote">Need bulk quantities?</a>
+              <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-7 font-extrabold">
+                <Link to="/categories">Explore Categories</Link>
               </Button>
             </div>
           </div>
-          <div className="relative">
-            <div aria-hidden="true" className="absolute -inset-x-6 inset-y-8 rounded-3xl bg-surface" />
-            <img
-              src={heroImage}
-              alt="Electrical products including a modular switch plate, LED bulb, LED panel light, extension board and copper wire"
-              width={1408}
-              height={1104}
-              className="relative w-full rounded-xl object-contain"
-            />
+          <div className="relative mx-auto w-full max-w-xl motion-fade-in">
+            <div aria-hidden="true" className="absolute -inset-5 rounded-[2rem] border border-primary/10 bg-background/50 shadow-[var(--shadow-lift)]" />
+            <div aria-hidden="true" className="absolute -bottom-6 -left-6 h-24 w-24 border-b-2 border-l-2 border-primary/50" />
+            <img src={heroImage} alt="Electrical products including switches, lighting, an extension board and copper wire" width={1408} height={1104} className="hero-product relative w-full rounded-2xl object-contain" />
+            <div className="vertical-headline absolute -right-2 top-1/2 hidden h-48 -translate-y-1/2 overflow-hidden border-l border-primary/25 pl-4 sm:block">
+              <div className="vertical-headline-track">
+                {[...MOVING_WORDS, ...MOVING_WORDS].map((word, index) => (
+                  <span key={`${word}-${index}`} className="block py-2 text-xs font-extrabold tracking-[0.22em] text-muted-foreground">{word}</span>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 sm:hidden" aria-label="Product categories">
+              {MOVING_WORDS.map((word) => <span key={word} className="text-[10px] font-extrabold tracking-[0.18em] text-muted-foreground">{word}</span>)}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border bg-surface">
-        <div className="container-pb grid gap-6 py-10 sm:grid-cols-2 lg:grid-cols-4">
-          {TRUST.map((item) => (
-            <div key={item.title}>
-              <div className="energy-rule" />
-              <h2 className="mt-4 text-base font-extrabold">{item.title}</h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">{item.copy}</p>
-            </div>
+      <div className="overflow-hidden border-b border-border bg-ink text-ink-foreground" aria-label="Power Bazar product categories">
+        <div className="brand-marquee flex w-max items-center gap-5 py-3.5 text-xs font-extrabold tracking-[0.2em]">
+          {[...BRAND_STRIP, ...BRAND_STRIP].map((item, index) => (
+            <span key={`${item}-${index}`} className="flex items-center gap-5 whitespace-nowrap"><span className="text-primary">•</span>{item}</span>
           ))}
         </div>
-      </section>
+      </div>
 
-      <section className="container-pb py-16 sm:py-20">
-        <SectionHeading
-          eyebrow="Categories"
-          title="Find what you need."
-          description="Seven focused categories covering everyday electrical requirements."
-        />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <section className="container-pb section-pb">
+        <SectionHeading eyebrow="Explore by category" title="Find the right fit for every space." description="Browse the categories available in the Power Bazar catalogue." />
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {categoriesQuery.isLoading ? <ProductGridSkeleton count={4} /> : null}
           {categoriesQuery.isError ? (
             <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
@@ -130,11 +119,11 @@ export function Home() {
       </section>
 
       <section className="border-y border-border bg-surface">
-        <div className="container-pb py-16 sm:py-20">
+        <div className="container-pb section-pb">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow="Featured" title="Popular right now." />
+            <SectionHeading eyebrow="Featured products" title="Ready for the next job." />
             <Button asChild variant="outline" className="rounded-full font-bold">
-              <Link to="/products" search={{ q: undefined, category: undefined }}>
+              <Link to="/request-quote">
                 View all products
               </Link>
             </Button>
@@ -153,13 +142,15 @@ export function Home() {
               />
             ) : null}
             {featuredQuery.data && featuredQuery.data.length > 0 ? (
-              <ProductGrid products={featuredQuery.data} />
+              <div className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+                {featuredQuery.data.map((product) => <div key={product.id} className="w-[min(82vw,19rem)] shrink-0 snap-start sm:w-auto"><ProductCard product={product} /></div>)}
+              </div>
             ) : null}
           </div>
         </div>
       </section>
 
-      <section className="container-pb py-16 sm:py-20">
+      <section className="container-pb section-pb">
         <div className="grid items-center gap-10 rounded-xl border border-border bg-card p-8 shadow-[var(--shadow-card)] sm:p-12 lg:grid-cols-2">
           <div>
             <p className="eyebrow">AI Product Assistant</p>
@@ -189,13 +180,13 @@ export function Home() {
       </section>
 
       <section className="border-t border-border bg-surface">
-        <div className="container-pb py-16 sm:py-20">
-          <SectionHeading eyebrow="Why Power Bazar" title="Built around what customers ask for." />
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="container-pb section-pb">
+          <SectionHeading eyebrow="Why Power Bazar" title="A clearer way to shop for electrical essentials." />
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {WHY.map((item) => (
-              <div key={item.title} className="rounded-xl border border-border bg-card p-6">
-                <h3 className="text-base font-extrabold">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.copy}</p>
+              <div key={item.title} className="border-l-2 border-primary/40 py-2 pl-5">
+                <h3 className="text-lg font-extrabold">{item.title}</h3>
+                <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{item.copy}</p>
               </div>
             ))}
           </div>
@@ -203,12 +194,12 @@ export function Home() {
       </section>
 
       <section className="bg-primary text-primary-foreground">
-        <div className="container-pb flex flex-col items-start gap-6 py-16 sm:flex-row sm:items-center sm:justify-between sm:py-20">
+        <div className="container-pb flex flex-col items-start gap-6 py-14 sm:flex-row sm:items-center sm:justify-between sm:py-16">
           <div>
-            <h2 className="text-3xl font-extrabold sm:text-4xl">Power made practical.</h2>
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-primary-foreground/75">For larger requirements</p>
+            <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">Need larger quantities?</h2>
             <p className="mt-3 max-w-xl text-primary-foreground/85">
-              Clear product information, honest availability and quantities that suit both a single
-              room and a full project.
+              For shops, projects and larger requirements, send a request and the team will get back to you.
             </p>
           </div>
           <Button
@@ -217,8 +208,8 @@ export function Home() {
             variant="secondary"
             className="h-12 shrink-0 rounded-full px-7 font-extrabold"
           >
-            <Link to="/products" search={{ q: undefined, category: undefined }}>
-              Explore Products
+            <Link to="/request-quote">
+              Request a Bulk Quote
             </Link>
           </Button>
         </div>
@@ -228,30 +219,16 @@ export function Home() {
         <div className="container-pb grid gap-8 py-16 sm:py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div>
             <div className="energy-rule" />
-            <h2 className="mt-5 text-3xl font-extrabold sm:text-4xl">Built for everyday power.</h2>
+            <h2 className="mt-5 text-3xl font-extrabold sm:text-4xl">Helpful when you need a second opinion.</h2>
             <p className="mt-4 max-w-xl text-ink-foreground/70">
-              From a single LED bulb to a full wiring run, Power Bazar keeps the essentials stocked
-              and the answers simple.
+              Tell us what you are looking for and the AI Product Assistant can help you find a suitable item in the catalogue.
             </p>
           </div>
-          <dl className="grid grid-cols-2 gap-6">
-            <div>
-              <dt className="text-xs font-extrabold uppercase tracking-[0.14em] text-ink-foreground/60">
-                Categories
-              </dt>
-              <dd className="mt-1 text-3xl font-extrabold">7</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-extrabold uppercase tracking-[0.14em] text-ink-foreground/60">
-                Supply
-              </dt>
-              <dd className="mt-1 text-3xl font-extrabold">Retail & Bulk</dd>
-            </div>
-          </dl>
+          <Button asChild size="lg" variant="secondary" className="w-fit rounded-full px-7 font-extrabold"><Link to="/ai-assistant"><Sparkles className="size-4" aria-hidden="true" />Open Product Assistant</Link></Button>
         </div>
       </section>
 
-      <section className="container-pb py-16 sm:py-20">
+      <section className="container-pb section-pb">
         <SectionHeading align="center" eyebrow="Support" title="Need help choosing?" />
         <div className="mt-9 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg" className="h-12 rounded-full px-7 font-extrabold">
@@ -279,22 +256,6 @@ export function Home() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-surface">
-        <div className="container-pb py-16">
-          <div className="mx-auto max-w-2xl rounded-xl border border-dashed border-border bg-card p-8 text-center">
-            <MapPin className="mx-auto size-6 text-primary" aria-hidden="true" />
-            <h2 className="mt-4 text-xl font-extrabold">Store & contact details</h2>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Verified store information — address, phone number and opening hours — will be added
-              here as soon as it is provided by Power Bazar. For bulk quantities or business supply,
-              send a request and the team will get back to you.
-            </p>
-            <Button asChild className="mt-6 rounded-full font-bold">
-              <a href="/request-quote">Request a Bulk Quote</a>
-            </Button>
-          </div>
-        </div>
-      </section>
     </SiteLayout>
   );
 }

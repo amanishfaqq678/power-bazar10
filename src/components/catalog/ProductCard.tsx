@@ -15,21 +15,15 @@ export function ProductCard({ product }: { product: Product }) {
     product.availability !== "out_of_stock";
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-lift)]">
-      <Link
-        to="/products/$slug"
-        params={{ slug: product.slug }}
-        className="block overflow-hidden bg-surface"
-        tabIndex={-1}
-        aria-hidden="true"
-      >
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)] transition-[box-shadow,transform,border-color] duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[var(--shadow-lift)]">
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="block overflow-hidden bg-surface" aria-label={`View ${product.name}`}>
         <img
           src={categoryImage(product.category?.slug, product.image_url)}
-          alt=""
+          alt={product.name}
           width={800}
           height={600}
           loading="lazy"
-          className="aspect-4/3 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="aspect-4/3 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] group-hover:-translate-y-0.5"
         />
       </Link>
 
@@ -59,7 +53,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-5 flex gap-2">
           <Button
-            className="flex-1 rounded-full font-bold"
+            className="flex-1 rounded-full font-bold transition-transform group-hover:-translate-y-0.5"
             disabled={!canPurchase}
             title={!canPurchase ? "This product is not currently available to purchase" : undefined}
             onClick={() => {

@@ -130,13 +130,13 @@ function RequestQuotePage() {
     <SiteLayout>
       <PageHeader
         eyebrow="Quotation"
-        title="Request a Quote"
-        description="Allow customers to review the products and quantities they need and submit their details so Power Bazar can prepare a quotation."
+        title="Need larger quantities?"
+        description="Submit your bulk requirements and the Power Bazar team will review them for quotation."
       />
 
-      <section className="container-pb py-10">
+      <section className="container-pb section-pb">
         {items.length === 0 ? (
-          <div className="mx-auto max-w-xl rounded-xl border border-dashed border-border bg-card p-8 text-center">
+          <div className="motion-fade-up mx-auto max-w-xl rounded-2xl border border-dashed border-border bg-card p-8 text-center shadow-[var(--shadow-card)]">
             <h2 className="text-xl font-extrabold">Your quote request is empty.</h2>
             <p className="mt-2 text-muted-foreground">
               Add products from the catalogue to start a quote request.
@@ -154,7 +154,7 @@ function RequestQuotePage() {
               {items.map((item) => (
                 <div
                   key={item.productId}
-                  className="flex gap-4 rounded-xl border border-border bg-card p-4"
+                  className="flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]"
                 >
                   <img
                     src={categoryImage(item.categorySlug, item.imageUrl)}
@@ -206,7 +206,7 @@ function RequestQuotePage() {
               ))}
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
               <h2 className="text-xl font-extrabold">Customer Details</h2>
               <form onSubmit={handleSubmit} className="mt-5 space-y-4" noValidate>
                 <div>
@@ -304,7 +304,7 @@ function RequestQuotePage() {
                   className="h-12 w-full rounded-full font-extrabold"
                   disabled={submitting}
                 >
-                  {submitting ? "Submitting…" : "Submit Quote Request"}
+                  {submitting ? "Submitting…" : "Request Bulk Quote"}
                 </Button>
               </form>
             </div>

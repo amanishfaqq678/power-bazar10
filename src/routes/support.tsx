@@ -32,10 +32,10 @@ const FAQ = [
 export default function SupportPage() {
   return (
     <SiteLayout>
-      <div className="container-pb py-12">
+      <div className="container-pb section-pb">
         <section className="mx-auto max-w-4xl">
           <header className="mb-6">
-            <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">
+            <p className="eyebrow">Support</p><h1 className="mt-3 text-4xl font-extrabold text-foreground sm:text-5xl">
               How Can We Help?
             </h1>
             <p className="mt-2 text-base text-muted-foreground">
@@ -43,23 +43,23 @@ export default function SupportPage() {
             </p>
           </header>
 
-          <div className="mb-6 rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
             <h2 className="text-xl font-semibold text-foreground">Product Help</h2>
             <p className="mt-2 text-base text-muted-foreground">
               Browse categories/products or use the Product Assistant for guided product
               suggestions.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <a href="/ai-assistant" className="btn btn-secondary">
+              <a href="/ai-assistant" className="inline-flex h-11 items-center justify-center rounded-full bg-secondary px-6 text-sm font-extrabold text-secondary-foreground shadow-sm transition-[background-color,box-shadow,transform] hover:-translate-y-0.5 hover:bg-secondary/80 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 Open Product Assistant
               </a>
-              <a href="/products" className="btn btn-primary">
+              <a href="/products" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-extrabold text-primary-foreground shadow-sm transition-[background-color,box-shadow,transform] hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 Browse Products
               </a>
             </div>
           </div>
 
-          <div className="mb-6 rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
             <h2 className="text-xl font-semibold text-foreground">Quote Assistance</h2>
             <p className="mt-2 text-base text-muted-foreground">Quote process overview:</p>
             <ol className="mt-2 list-decimal pl-5 text-base text-muted-foreground">
@@ -71,7 +71,7 @@ export default function SupportPage() {
             </ol>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
             <h2 className="text-xl font-semibold text-foreground">FAQ</h2>
             <dl className="mt-4 space-y-4">
               {FAQ.map((f) => (

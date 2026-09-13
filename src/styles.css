@@ -110,6 +110,7 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   h1,
@@ -123,6 +124,7 @@
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
+    border-radius: 0.25rem;
   }
 
   /* Make selected text readable: use a dark text color on selection. */
@@ -161,7 +163,23 @@
   margin-inline: auto;
   width: 100%;
   max-width: 80rem;
-  padding-inline: 1.25rem;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+@utility section-pb {
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+}
+
+@utility motion-fade-up {
+  animation: fade-up 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility motion-fade-in {
+  animation: fade-in 500ms ease-out both;
+}
+
+@utility motion-stagger {
+  animation-delay: calc(var(--stagger-index, 0) * 70ms);
 }
 
 @utility eyebrow {
@@ -177,4 +195,74 @@
   width: 3.5rem;
   border-radius: 999px;
   background: var(--color-primary);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 3rem 3rem;
+  mask-image: linear-gradient(to right, black, transparent 75%);
+}
+
+.hero-product {
+  animation: hero-float 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+.vertical-headline-track {
+  animation: vertical-loop 18s linear infinite;
+}
+
+.brand-marquee {
+  animation: brand-loop 28s linear infinite;
+  will-change: transform;
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-0.35rem) scale(1.01); }
+}
+
+@keyframes vertical-loop {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+
+@keyframes brand-loop {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hero-product,
+  .vertical-headline-track,
+  .brand-marquee {
+    animation: none;
+  }
 }

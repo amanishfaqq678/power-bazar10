@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Minus, Plus } from "lucide-react";
 import { PageHeader, SiteLayout } from "@/components/site/SiteLayout";
 import { fetchProductBySlug, fetchProductImages, fetchRelatedProducts } from "@/lib/api";
 import { useQuoteBasket } from "@/lib/quote-basket";
@@ -9,7 +10,7 @@ import { AvailabilityBadge } from "@/components/catalog/AvailabilityBadge";
 import { toast } from "sonner";
 import { categoryImage } from "@/lib/product-images";
 import { Input } from "@/components/ui/input";
-import { ProductGrid } from "@/components/catalog/ProductCard";
+import { ProductCard } from "@/components/catalog/ProductCard";
 
 export const Route = createFileRoute("/products/$slug")({
   component: ProductPage,
@@ -44,7 +45,7 @@ function ProductPage() {
       <SiteLayout>
         <div className="container-pb py-20">
           <div className="max-w-3xl">
-            <p className="text-muted">Loading product…</p>
+            <p className="text-muted-foreground">Loading product…</p>
           </div>
         </div>
       </SiteLayout>
@@ -57,7 +58,7 @@ function ProductPage() {
         <div className="container-pb py-20">
           <div className="max-w-3xl">
             <h2 className="text-xl font-extrabold">Product not found</h2>
-            <p className="mt-2 text-muted">
+            <p className="mt-2 text-muted-foreground">
               This product may have been removed or the link is incorrect.
             </p>
           </div>
@@ -94,9 +95,9 @@ function ProductPage() {
         {...(product.description ? { description: product.description } : {})}
       />
 
-      <section className="container-pb py-10">
+      <section className="container-pb section-pb">
         <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="motion-fade-in lg:col-span-2">
             <img
               src={
                 imagesQuery.data?.[selectedImage]?.image_url ??
@@ -106,7 +107,7 @@ function ProductPage() {
               alt={product.name}
               width={1200}
               height={900}
-              className="w-full rounded-xl object-contain"
+              className="aspect-[4/3] w-full rounded-2xl border border-border bg-surface object-contain p-3 transition-opacity duration-300 sm:p-6"
             />
             {imagesQuery.data && imagesQuery.data.length > 1 ? (
               <div className="mt-4 flex flex-wrap gap-3">
@@ -115,7 +116,7 @@ function ProductPage() {
                     key={image.id}
                     type="button"
                     onClick={() => setSelectedImage(index)}
-                    className={`overflow-hidden rounded-lg border-2 ${selectedImage === index ? "border-primary" : "border-border"}`}
+                    className={`overflow-hidden rounded-lg border-2 transition-all hover:-translate-y-0.5 hover:border-primary/60 ${selectedImage === index ? "border-primary ring-2 ring-primary/15" : "border-border"}`}
                     aria-label={`View product image ${index + 1}`}
                   >
                     <img src={image.image_url} alt={image.alt_text ?? `${product.name} image ${index + 1}`} className="size-20 object-cover" />
@@ -145,7 +146,7 @@ function ProductPage() {
             ) : null}
           </div>
 
-          <aside className="rounded-xl border border-border bg-card p-6">
+          <aside className="motion-fade-up rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] lg:sticky lg:top-24 lg:self-start">
             <div className="flex items-center justify-between gap-4">
               <AvailabilityBadge availability={product.availability} />
               <div className="text-right">
@@ -162,16 +163,11 @@ function ProductPage() {
 
             <div className="mt-6">
               <label htmlFor="product-quantity" className="text-sm font-bold">Quantity</label>
-              <Input
-                id="product-quantity"
-                type="number"
-                min={1}
-                max={product.stock_quantity || 1}
-                value={quantity}
-                onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
-                className="mt-2 h-11 w-28"
-                disabled={!canPurchase}
-              />
+              <div className="mt-2 flex h-11 w-fit items-center rounded-lg border border-input">
+                <Button type="button" variant="ghost" size="icon" aria-label="Decrease quantity" disabled={!canPurchase || quantity <= 1} onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="size-4" /></Button>
+                <Input id="product-quantity" type="number" min={1} max={product.stock_quantity || 1} value={quantity} onChange={(event) => setQuantity(Math.min(product.stock_quantity || 1, Math.max(1, Number(event.target.value) || 1)))} className="h-9 w-14 border-0 text-center shadow-none focus-visible:ring-0" disabled={!canPurchase} aria-label="Quantity" />
+                <Button type="button" variant="ghost" size="icon" aria-label="Increase quantity" disabled={!canPurchase || quantity >= (product.stock_quantity || 1)} onClick={() => setQuantity((value) => Math.min(product.stock_quantity || 1, value + 1))}><Plus className="size-4" /></Button>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -194,10 +190,12 @@ function ProductPage() {
           </aside>
         </div>
         {relatedQuery.data && relatedQuery.data.length > 0 ? (
-          <div className="mt-14">
+          <div className="mt-14 motion-fade-up">
             <h2 className="text-2xl font-extrabold">Related products</h2>
             <div className="mt-6">
-              <ProductGrid products={relatedQuery.data} />
+            <div className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+              {relatedQuery.data.map((related) => <div key={related.id} className="w-[min(82vw,19rem)] shrink-0 snap-start sm:w-auto"><ProductCard product={related} /></div>)}
+            </div>
             </div>
           </div>
         ) : null}

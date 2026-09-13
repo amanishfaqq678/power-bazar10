@@ -8,7 +8,7 @@ export function CategoryCard({ category }: { category: Category }) {
     <Link
       to="/categories/$slug"
       params={{ slug: category.slug }}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-lift)]"
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)] transition-[box-shadow,transform,border-color] duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[var(--shadow-lift)]"
     >
       <div className="overflow-hidden bg-surface">
         <img
@@ -17,7 +17,7 @@ export function CategoryCard({ category }: { category: Category }) {
           width={800}
           height={600}
           loading="lazy"
-          className="aspect-4/3 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="aspect-4/3 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
         />
       </div>
       <div className="flex flex-1 flex-col p-5">

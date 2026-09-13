@@ -121,7 +121,7 @@ function CategoryPage() {
         </nav>
       </PageHeader>
 
-      <section className="container-pb py-10">
+      <section className="container-pb section-pb">
         <img
           src={categoryImage(category.slug, category.image_url)}
           alt={`${category.name} products from Power Bazar`}
@@ -131,7 +131,7 @@ function CategoryPage() {
           className="aspect-[21/9] w-full rounded-xl border border-border object-cover"
         />
 
-        <div className="mt-8 grid gap-4 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <Label htmlFor="category-search" className="font-bold">
               Search in {category.name}
@@ -176,7 +176,7 @@ function CategoryPage() {
               actionTo="/products"
             />
           ) : null}
-          {filtered.length > 0 ? <ProductGrid products={filtered} /> : null}
+          {filtered.length > 0 ? <div className="motion-fade-in"><ProductGrid products={filtered} /></div> : null}
         </div>
       </section>
     </SiteLayout>

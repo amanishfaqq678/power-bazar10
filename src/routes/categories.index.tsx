@@ -17,7 +17,7 @@ export const Route = createFileRoute("/categories/")({
       { property: "og:title", content: "Product Categories | Power Bazar" },
       {
         property: "og:description",
-        content: "Seven focused electrical product categories from Power Bazar.",
+        content: "Focused electrical product categories from Power Bazar.",
       },
     ],
   }),
@@ -30,11 +30,11 @@ function CategoriesPage() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Categories"
+        eyebrow="Explore categories"
         title="Find what you need."
-        description="Every Power Bazar product sits in one of these categories."
+        description="Browse the categories available in the Power Bazar catalogue."
       />
-      <section className="container-pb py-12">
+      <section className="container-pb section-pb">
         {categoriesQuery.isLoading ? <ProductGridSkeleton count={7} /> : null}
         {categoriesQuery.isError ? (
           <ErrorState title="Categories unavailable" onRetry={() => categoriesQuery.refetch()} />

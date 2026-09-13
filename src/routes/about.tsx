@@ -6,17 +6,18 @@ import { createFileRoute } from "@tanstack/react-router";
 function AboutPage() {
   return (
     <SiteLayout>
-      <div className="container-pb py-12">
+      <div className="container-pb section-pb">
         <section className="mx-auto max-w-5xl">
-          <header className="mb-8">
-            <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">
+          <header className="motion-fade-up mb-10">
+            <p className="eyebrow">About Power Bazar</p>
+            <h1 className="mt-3 text-4xl font-extrabold text-foreground sm:text-5xl">
               Powering Better Electrical Supply
             </h1>
             <p className="mt-2 text-base text-muted-foreground">{site.description}</p>
           </header>
 
           <article className="grid gap-8">
-            <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
               <h2 className="text-xl font-semibold text-foreground">About Power Bazar</h2>
               <p className="mt-2 text-base text-muted-foreground">
                 Power Bazar is being positioned as a wholesale electrical products brand focused on
@@ -65,7 +66,7 @@ function AboutPage() {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="/products" className="btn btn-primary">
+              <a href="/products" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-extrabold text-primary-foreground shadow-sm transition-[background-color,box-shadow,transform] hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 Browse Products
               </a>
               {/* Request Quote omitted unless route exists */}
